@@ -4,7 +4,7 @@ import {FirebaseError} from "firebase/app";
 import {auth} from "../firebase";
 import {signInWithEmailAndPassword} from "firebase/auth";
 import {Input, Switcher, Title, Wrapper, Error, Form} from "../components/auth-components";
-import GithubButton from "../components/GithubButton";
+import GithubButton from "../components/github-button";
 
 
 export default function Login() {
