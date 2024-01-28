@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import {useEffect, useState} from "react";
 import {collection, getDocs, limit, onSnapshot, orderBy, query} from "firebase/firestore";
-import {db} from "../firebase";
+import {auth, db} from "../firebase";
 import Tweet from "./tweet";
 import firebase from "firebase/compat";
 import Unsubscribe = firebase.Unsubscribe;
@@ -53,9 +53,11 @@ export default function Timeline() {
             })
         }
         fetchTweets()
-        return () => {
-            unsubscribe && unsubscribe()
-        }
+        auth.onAuthStateChanged((user) => {
+            if (user == null) {
+                unsubscribe && unsubscribe()
+            }
+        })
     }, [])
 
 
