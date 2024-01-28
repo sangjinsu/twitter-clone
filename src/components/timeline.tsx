@@ -18,7 +18,6 @@ export interface ITweet {
 
 const Wrapper = styled.div`
     height: 100vh;
-    overflow-y: scroll;
 `
 
 export default function Timeline() {
