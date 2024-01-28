@@ -85,7 +85,7 @@ export default function PostTweetForm() {
             return
         }
 
-        if (files && files[0].type.includes("image")) {
+        if (files && !files[0].type.includes("image")) {
             alert("Please upload an image file")
             return
         }
@@ -120,7 +120,7 @@ export default function PostTweetForm() {
             setTweet("")
 
             if (file) {
-                const locationRef = ref(storage, `tweets/${user?.uid}-${user?.displayName}/${doc.id}`)
+                const locationRef = ref(storage, `tweets/${user?.uid}/${doc.id}`)
                 const result = await uploadBytes(locationRef, file)
                 const downloadURL = await getDownloadURL(result.ref);
 
