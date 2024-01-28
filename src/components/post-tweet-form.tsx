@@ -1,7 +1,8 @@
 import styled from "styled-components";
 import {useState} from "react";
-import {auth, db} from "../firebase";
-import {addDoc, collection } from "firebase/firestore";
+import {auth, db, storage} from "../firebase";
+import {addDoc, collection, updateDoc } from "firebase/firestore";
+import {getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 
 const Form = styled.form`
@@ -95,13 +96,25 @@ export default function PostTweetForm() {
 
         try {
             setLoading(true)
-            await addDoc(collection(db, "tweets"), {
+            const doc = await addDoc(collection(db, "tweets"), {
                 tweet,
                 createdAt: Date.now(),
                 username: user?.displayName || "Anonymous",
                 userId: user?.uid,
             })
             setTweet("")
+
+            if (file) {
+                const locationRef = ref(storage, `tweets/${user?.uid}-${user?.displayName}/${doc.id}`)
+                const result = await uploadBytes(locationRef, file)
+                const downloadURL = await getDownloadURL(result.ref);
+
+                await updateDoc(doc, {
+                    photo: downloadURL
+                })
+
+                setFile(null)
+            }
         } catch (error) {
             console.error(error)
         } finally {
