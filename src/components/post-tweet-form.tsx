@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import {useState} from "react";
+import {auth, db} from "../firebase";
+import {addDoc, collection } from "firebase/firestore";
 
 
 const Form = styled.form`
@@ -16,13 +18,15 @@ const TextArea = styled.textarea`
     border-radius: 20px;
     background-color: #333;
     color: white;
+
     &::placeholder {
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         color: #888;
     }
+
     &:focus {
         outline: none;
-        border-color:  #1da1f2;
+        border-color: #1da1f2;
     }
 `
 
@@ -38,6 +42,7 @@ const AttachFileButton = styled.label`
     align-items: center;
     justify-content: center;
     width: fit-content;
+
     svg {
         width: 20px;
         fill: white;
@@ -80,15 +85,36 @@ export default function PostTweetForm() {
         }
     }
 
-    const onSubmit = async (event: React.FormEvent<HTMLInputElement>) => {
+    const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        setLoading(true)
+        if (isLoading || tweet === "" || tweet.length > 180) {
+            return
+        }
+
+        const user = auth.currentUser
+
+        try {
+            setLoading(true)
+            await addDoc(collection(db, "tweets"), {
+                tweet,
+                createdAt: Date.now(),
+                username: user?.displayName || "Anonymous",
+                userId: user?.uid,
+            })
+            setTweet("")
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setLoading(false)
+        }
+
+
     }
 
-    return <Form>
-        <TextArea onChange={onChange} value={tweet} placeholder="What is happening?"/>
+    return <Form onSubmit={onSubmit}>
+        <TextArea rows={5} maxLength={180} onChange={onChange} value={tweet} placeholder="What is happening?"/>
         <AttachFileButton htmlFor="file">{file ? "Photo added ✅" : "Add Photo"}</AttachFileButton>
         <AttachFileInput onChange={onFileChange} type='file' id='file' accept='image/*'/>
-        <SubmitButton onSubmit={onSubmit} type='submit' value={isLoading ? "Posting..." : "Post Tweet"}/>
+        <SubmitButton type='submit' value={isLoading ? "Posting..." : "Post Tweet"}/>
     </Form>
 }
