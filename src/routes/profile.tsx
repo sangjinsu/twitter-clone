@@ -2,7 +2,7 @@ import {auth, db, storage} from "../firebase";
 import React, {useEffect, useState} from "react";
 import styled from "styled-components";
 import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
-import {collection, getDocs, limit, onSnapshot, orderBy, query, where} from "firebase/firestore";
+import {collection, doc, getDocs, limit, onSnapshot, orderBy, query, updateDoc, where} from "firebase/firestore";
 import {updateProfile} from "firebase/auth";
 import {ITweet} from "../components/timeline";
 import Tweet from "../components/tweet";
@@ -55,6 +55,18 @@ const Name = styled.span`
     font-weight: 600;
 `
 
+const NameInput = styled.input`
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    border: 0;
+    background-color: transparent;
+    text-align: center;
+    width: 100%;
+    max-width: 200px;
+    cursor: pointer;
+`
+
 const Tweets = styled.div`
     display: flex;
     flex-direction: column;
@@ -68,6 +80,8 @@ export default function Profile() {
     const user = auth.currentUser
     const [avatar, setAvatar] = useState(user?.photoURL ?? "")
     const [tweets, setTweets] = useState<ITweet[]>([])
+    const [displayName, setDisplayName] = useState(user?.displayName ?? "")
+    const [changeDisplayName, setChangeDisplayName] = useState(false)
 
     const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!user) return
@@ -79,6 +93,32 @@ export default function Profile() {
             const url = await getDownloadURL(result.ref)
             await updateProfile(user, {photoURL: url})
             setAvatar(url)
+        }
+    }
+
+    const onDisplayNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!user) return
+        const {target: {value}} = e
+        setDisplayName(value)
+    }
+
+    const onDisplayNameEnter = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!user) return
+        if (e.key === "Enter") {
+            await updateProfile(user, {displayName})
+            setChangeDisplayName(false)
+
+            // update tweets where userId === user.uid
+
+            const tweetsQuery = query(
+                collection(db, "tweets"),
+                where("userId", "==", user?.uid),
+            )
+
+            const snapshot = await getDocs(tweetsQuery)
+            for (const doc of snapshot.docs) {
+                await updateDoc(doc.ref, {username: displayName})
+            }
         }
     }
 
@@ -110,6 +150,11 @@ export default function Profile() {
         setTweets(tweets)
     }
 
+
+    const onChangeDisplayName = () => {
+        setChangeDisplayName(true)
+    }
+
     useEffect(() => {
         fetchTweets()
     }, []);
@@ -128,7 +173,20 @@ export default function Profile() {
             }
         </AvatarUpload>
         <AvatarInput onChange={onAvatarChange} id='avatar' type="file" accept="image/*"/>
-        <Name>{user?.displayName ?? "Anonymous"}</Name>
+
+        {
+            changeDisplayName ?
+                <NameInput
+                    value={displayName}
+                    onChange={onDisplayNameChange}
+                    onKeyDown={onDisplayNameEnter}
+                    onBlur={() => setChangeDisplayName(false)}
+                    autoFocus
+                />
+                :
+                <Name onClick={onChangeDisplayName}>{displayName}</Name>
+        }
+
         <Tweets>
             {
                 tweets.map(tweet => {
