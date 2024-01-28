@@ -10,6 +10,7 @@ import {useEffect, useState} from "react";
 import LoadingScreen from "./components/loading-screen";
 import {auth} from "./firebase";
 import ProtectedRoute from "./components/protected-route";
+import ReactModal from "react-modal";
 
 
 const router = createBrowserRouter([
@@ -59,6 +60,8 @@ const Wrapper = styled.div`
     display: flex;
     justify-content: center;
 `
+
+ReactModal.setAppElement("#root")
 
 function App() {
     const [isLoading, setIsLoading] = useState(true)

@@ -64,6 +64,7 @@ export default function Timeline() {
             tweets.map(tweet => {
                 return (
                     <Tweet
+                        key={tweet.id}
                         id={tweet.id}
                         userId={tweet.userId}
                         photo={tweet.photo}
