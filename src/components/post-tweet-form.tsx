@@ -1,8 +1,8 @@
 import styled from "styled-components";
 import {useState} from "react";
 import {auth, db, storage} from "../firebase";
-import {addDoc, collection, updateDoc } from "firebase/firestore";
-import {getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {addDoc, collection, updateDoc} from "firebase/firestore";
+import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
 
 
 const Form = styled.form`
@@ -80,7 +80,22 @@ export default function PostTweetForm() {
 
     const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {target: {files}} = event
-        if (files && files.length === 1) {
+        if (files && files.length > 1) {
+            alert("Please upload only one file")
+            return
+        }
+
+        if (files && files[0].type.includes("image")) {
+            alert("Please upload an image file")
+            return
+        }
+
+        if (files && files[0].size > 1024 ** 3) {
+            alert("Please upload a smaller image file")
+            return
+        }
+
+        if (files) {
             const theFile = files[0]
             setFile(theFile)
         }
